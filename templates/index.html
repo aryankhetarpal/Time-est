@@ -7,7 +7,7 @@
     <script src="{{ url_for('static', filename='app.js') }}"></script>
 </head>
 <body>
-    <h1>Machining Time Estimator</h1>
+    <h1>Cutting Time Estimator</h1>
 
     <form id="machining-form">
         <label for="height">Height (mm):</label>
@@ -22,9 +22,7 @@
         <label for="grade">Steel Grade:</label>
         <select id="grade" name="grade">
             <option value="PMS">PMS</option>
-            <option value="2714">2714</option>
-            <option value="2316">2316</option>
-            <option value="Nitro B">Nitro B</option>
+            <option value="2714/2316/Nitro B">2714/2316/Nitro B</option>
         </select><br><br>
 
         <label for="cut-type">Cut Type:</label>
