@@ -28,43 +28,25 @@ machine_data = [
     {'ID': 23, 'Machine Name': 'ITM3', 'Capacity': (1060, 1060), 'Feed PMS (mm/min)': 2.8, 'Feed 2714/2316/Nitro B (mm/min)': 1.5}
 ]
 
-def get_closest_machines(machine_data, selected_dimensions, steel_grade):
-    """Find machines with capacity closest to the selected block dimensions and the appropriate feed rate."""
+def get_closest_machines(selected_dimensions, steel_grade):
     dim_1, dim_2 = selected_dimensions
     closest_machines = []
 
     for machine in machine_data:
         capacity_1, capacity_2 = machine['Capacity']
-        feed_rate_str = f'Feed {steel_grade} (mm/min)'
-        
-        # Check if feed rate exists for the given steel grade
-        if feed_rate_str in machine:
-            feed_rate = machine[feed_rate_str]
-        else:
-            feed_rate = machine['Feed PMS (mm/min)']
+        feed_rate = machine[f'Feed {steel_grade} (mm/min)'] if steel_grade != "PMS" else machine['Feed PMS (mm/min)']
 
-        # Check if the machine can accommodate the block
         if capacity_1 >= dim_1 and capacity_2 >= dim_2:
-            # Calculate capacity differences
             dim_1_diff = abs(capacity_1 - dim_1)
             dim_2_diff = abs(capacity_2 - dim_2)
-            
-            # Calculate the overall difference
             total_diff = dim_1_diff + dim_2_diff
-            
-            # Add the machine and its difference to the list
             closest_machines.append({'Machine Name': machine['Machine Name'], 'Feed Rate': feed_rate, 'Difference': total_diff})
-    
-    # Sort machines by the smallest total difference
+
     closest_machines.sort(key=lambda x: x['Difference'])
-    
-    # Return only the top 5 closest machines
     return closest_machines[:5]
 
 def calculate_cutting_time(feed_rate, block_dimensions, cut_type):
-    """Calculate cutting time based on machine feed rate, block dimensions, and cut type."""
     block_w, block_h, block_l = block_dimensions
-
     if cut_type == 'length':
         cut_dim = min(block_h, block_w)
     elif cut_type == 'height':
@@ -75,7 +57,6 @@ def calculate_cutting_time(feed_rate, block_dimensions, cut_type):
         raise ValueError("Invalid cut type. Choose 'length', 'height', or 'width'.")
 
     time_required = cut_dim / feed_rate
-    
     return time_required
 
 @app.route('/')
@@ -85,7 +66,6 @@ def index():
 @app.route('/calculate', methods=['POST'])
 def calculate():
     data = request.json
-    print("Received data:", data)  # Debug print
     height = int(data['height'])
     width = int(data['width'])
     length = int(data['length'])
@@ -96,23 +76,17 @@ def calculate():
     block_dimensions = (width, height, length)
 
     if cut_type == 'length':
-        width = final_dim
-        selected_dimensions = (width, height)  # Consider width and height for the next operation
+        length = final_dim
+        selected_dimensions = (width, height)
     elif cut_type == 'height':
         height = final_dim
-        selected_dimensions = (width, length)  # Consider width and length for the next operation
+        selected_dimensions = (width, length)
     elif cut_type == 'width':
         width = final_dim
-        selected_dimensions = (height, length)  # Consider height and length for the next operation
-    
+        selected_dimensions = (height, length)
+
     block_dimensions = (width, height, length)
-
-    closest_machines = get_closest_machines(machine_data, selected_dimensions, steel_grade)
-
-    print("Closest machines:", closest_machines)  # Debug print
-
-    if not closest_machines:
-        return jsonify({'error': 'No suitable machines found for the given block and steel grade.'})
+    closest_machines = get_closest_machines(selected_dimensions, steel_grade)
 
     results = []
     for machine in closest_machines:

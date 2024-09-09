@@ -1,14 +1,12 @@
-function calculate() {
-    // Get form values
-    const height = document.getElementById('height').value;
-    const width = document.getElementById('width').value;
-    const length = document.getElementById('length').value;
-    const steelGrade = document.getElementById('steel_grade').value;
-    const cutType = document.getElementById('cut_type').value;
-    const finalDimension = document.getElementById('final_dimension').value;
+function calculateCuttingTime() {
+    const height = document.getElementById("height").value;
+    const width = document.getElementById("width").value;
+    const length = document.getElementById("length").value;
+    const steelGrade = document.getElementById("grade").value;
+    const cutType = document.getElementById("cut-type").value;
+    const finalDimension = document.getElementById("final-dimension").value;
 
-    // Prepare data to send
-    const data = {
+    const requestData = {
         height: height,
         width: width,
         length: length,
@@ -17,28 +15,20 @@ function calculate() {
         final_dimension: finalDimension
     };
 
-    // Send data to Flask server
     fetch('/calculate', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify(requestData)
     })
     .then(response => response.json())
     .then(data => {
-        // Display results
-        const resultsDiv = document.getElementById('results');
-        resultsDiv.innerHTML = ''; // Clear previous results
-        if (data.error) {
-            resultsDiv.innerHTML = `<p>${data.error}</p>`;
-        } else {
-            data.forEach(item => {
-                resultsDiv.innerHTML += `<p>Machine: ${item.machine_name}, Cutting Time: ${item.cutting_time} minutes</p>`;
-            });
-        }
+        let resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = "";
+        data.forEach(result => {
+            resultsDiv.innerHTML += `Machine: ${result.machine_name}, Cutting Time: ${result.cutting_time} minutes<br>`;
+        });
     })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+    .catch(error => console.error('Error:', error));
 }
