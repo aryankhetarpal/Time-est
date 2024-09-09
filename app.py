@@ -58,7 +58,7 @@ def get_closest_machines(machine_data, selected_dimensions, steel_grade):
     # Sort machines by the smallest total difference
     closest_machines.sort(key=lambda x: x['Difference'])
     
-    # Return only the top 2 or 3 closest machines
+    # Return only the top 5 closest machines
     return closest_machines[:5]
 
 def calculate_cutting_time(feed_rate, block_dimensions, cut_type):
@@ -85,6 +85,7 @@ def index():
 @app.route('/calculate', methods=['POST'])
 def calculate():
     data = request.json
+    print("Received data:", data)  # Debug print
     height = int(data['height'])
     width = int(data['width'])
     length = int(data['length'])
@@ -95,7 +96,7 @@ def calculate():
     block_dimensions = (width, height, length)
 
     if cut_type == 'length':
-        length = final_dim
+        width = final_dim
         selected_dimensions = (width, height)  # Consider width and height for the next operation
     elif cut_type == 'height':
         height = final_dim
@@ -107,6 +108,8 @@ def calculate():
     block_dimensions = (width, height, length)
 
     closest_machines = get_closest_machines(machine_data, selected_dimensions, steel_grade)
+
+    print("Closest machines:", closest_machines)  # Debug print
 
     if not closest_machines:
         return jsonify({'error': 'No suitable machines found for the given block and steel grade.'})
