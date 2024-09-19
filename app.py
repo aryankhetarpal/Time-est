@@ -55,14 +55,18 @@ def get_closest_machines(selected_dimensions, steel_grade):
 
 def calculate_cutting_time(feed_rate, block_dimensions, cut_type):
     block_w, block_h, block_l = block_dimensions
+    
     if cut_type == 'length':
         cut_dim = min(block_h, block_w)
     elif cut_type == 'height':
         cut_dim = min(block_w, block_l)
     elif cut_type == 'width':
         cut_dim = min(block_h, block_l)
+    elif cut_type == 'dia':
+        # For dia cut, both width and height are the diameter
+        cut_dim = block_w  # since block_w and block_h are the same in this case
     else:
-        raise ValueError("Invalid cut type. Choose 'length', 'height', or 'width'.")
+        raise ValueError("Invalid cut type. Choose 'length', 'height', 'width', or 'dia'.")
 
     time_required = cut_dim / feed_rate
     return time_required
@@ -92,6 +96,13 @@ def calculate():
     elif cut_type == 'width':
         width = final_dim
         selected_dimensions = (height, length)
+    elif cut_type == 'dia':
+        # For cylindrical blocks, both width and height are set to the diameter
+        width = height = final_dim  # In dia cut, height and width are the same
+        selected_dimensions = (width, width)  # Diameter applies to both width and height
+        block_dimensions = (width, width, length)  # Updating block dimensions for the cylindrical block
+    else:
+        raise ValueError("Invalid cut type.")
 
     block_dimensions = (width, height, length)
     closest_machines = get_closest_machines(selected_dimensions, steel_grade)
