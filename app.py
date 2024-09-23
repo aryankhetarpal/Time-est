@@ -32,16 +32,18 @@ def get_closest_machines(selected_dimensions, steel_grade):
     dim_1, dim_2 = selected_dimensions
     closest_machines = []
 
-    # Threshold for showing "V" machines
-    large_dimension_threshold = 1200  # Adjust this threshold based on your requirement
+    # Thresholds for excluding "V" machines
+    v_machine_height_threshold = 1500
+    v_machine_width_threshold = 1800
 
     for machine in machine_data:
         capacity_1, capacity_2 = machine['Capacity']
         feed_rate = machine[f'Feed {steel_grade} (mm/min)'] if steel_grade != "PMS" else machine['Feed PMS (mm/min)']
 
-        # Exclude "V" machines unless block dimensions are large
-        if "V" in machine['Machine Name'] and (dim_1 < large_dimension_threshold and dim_2 < large_dimension_threshold):
-            continue  # Skip "V" machines for small dimensions
+        # Exclude "V" machines unless block dimensions are larger than the thresholds
+        if ("V" in machine['Machine Name'] and 
+           (dim_1 < v_machine_height_threshold or dim_2 < v_machine_width_threshold)):
+            continue  # Skip "V" machines if the block dimensions are too small
 
         if capacity_1 >= dim_1 and capacity_2 >= dim_2:
             dim_1_diff = abs(capacity_1 - dim_1)
@@ -51,6 +53,7 @@ def get_closest_machines(selected_dimensions, steel_grade):
 
     closest_machines.sort(key=lambda x: x['Difference'])
     return closest_machines[:5]
+
 
 
 def calculate_cutting_time(feed_rate, block_dimensions, cut_type):
