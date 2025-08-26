@@ -106,7 +106,15 @@
 
         document.getElementById('cut_type').addEventListener('change', function() {
             const cutType = document.getElementById('cut_type').value;
+            const diaNote = document.getElementById('dia-note');
 
+            if (cutType === 'dia') {
+        // Show note for cylindrical block
+                diaNote.style.display = 'block';
+            } else {
+                diaNote.style.display = 'none';
+            }
+            // If "dia cut" is selected, adjust the form to only need the final diameter (set width/height equal).
             
         });
     </script>

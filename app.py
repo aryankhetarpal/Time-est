@@ -95,9 +95,13 @@ def calculate():
         width = final_dim
         selected_dimensions = (height, length)
     elif cut_type == 'dia':
-        # For cylindrical blocks, both width and height are set to the diameter
-        
-        block_dimensions = (width, width, length)  # Updating block dimensions for the cylindrical block
+        diameter = final_dim  # the user enters the final diameter
+        width = diameter
+        height = diameter
+        block_dimensions = (width, height, length)
+
+    # Selected dimensions for machine capacity check
+        selected_dimensions = (diameter, diameter)  # Updating block dimensions for the cylindrical block
     else:
         raise ValueError("Invalid cut type.")
 
