@@ -55,7 +55,7 @@ def get_closest_machines(selected_dimensions, steel_grade):
             closest_machines.append({'Machine Name': machine['Machine Name'], 'Feed Rate': feed_rate, 'Difference': total_diff})
 
     closest_machines.sort(key=lambda x: x['Difference'])
-    return closest_machines[:5]
+    return closest_machines
 
 
 
@@ -104,8 +104,8 @@ def calculate():
         selected_dimensions = (height, length)
     elif cut_type == 'dia':
         # For cylindrical blocks, both width and height are set to the diameter
-        width = height = final_dim  # In dia cut, height and width are the same
-        selected_dimensions = (width, width)  # Diameter applies to both width and height
+        width = height # In dia cut, height and width are the same
+        height = 0  # Diameter applies to both width and height
         block_dimensions = (width, width, length)  # Updating block dimensions for the cylindrical block
     else:
         raise ValueError("Invalid cut type.")
