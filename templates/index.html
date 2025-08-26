@@ -107,16 +107,7 @@
         document.getElementById('cut_type').addEventListener('change', function() {
             const cutType = document.getElementById('cut_type').value;
 
-            // If "dia cut" is selected, adjust the form to only need the final diameter (set width/height equal).
-            if (cutType === 'dia') {
-                document.getElementById('width').disabled = true;
-                document.getElementById('height').disabled = true;
-                document.getElementById('length').disabled = false;
-            } else {
-                document.getElementById('width').disabled = false;
-                document.getElementById('height').disabled = false;
-                document.getElementById('length').disabled = false;
-            }
+            
         });
     </script>
 </body>
