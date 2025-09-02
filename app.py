@@ -29,12 +29,11 @@ machine_data = [
     {'ID': 24, 'Machine Name': 'ITM3', 'Capacity': (1060, 1060), 'Feed PMS (mm/min)': 2.8, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
     {'ID': 25, 'Machine Name': 'Friggi', 'Capacity': (900, 900), 'Feed PMS (mm/min)': 2.5},
     {'ID': 26, 'Machine Name': 'B2', 'Capacity': (800, 800), 'Feed PMS (mm/min)': 3}
-    ]
+]
 
 def get_closest_machines(selected_dimensions, steel_grade):
     dim_1, dim_2 = selected_dimensions
     closest_machines = []
-
 
     for machine in machine_data:
         capacity_1, capacity_2 = machine['Capacity']
@@ -44,28 +43,35 @@ def get_closest_machines(selected_dimensions, steel_grade):
             dim_1_diff = abs(capacity_1 - dim_1)
             dim_2_diff = abs(capacity_2 - dim_2)
             total_diff = dim_1_diff + dim_2_diff
-            closest_machines.append({'Machine Name': machine['Machine Name'], 'Feed Rate': feed_rate, 'Difference': total_diff})
+            closest_machines.append({
+                'Machine Name': machine['Machine Name'],
+                'Feed Rate': feed_rate,
+                'Difference': total_diff
+            })
 
     closest_machines.sort(key=lambda x: x['Difference'])
     return closest_machines
 
-
-
-def calculate_cutting_time(feed_rate, block_dimensions, cut_type):
+def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name):
     block_w, block_h, block_l = block_dimensions
     
     if cut_type == 'length':
         cut_dim = min(block_h, block_w)
     elif cut_type == 'height':
-        cut_dim = min(block_w, block_l)
+        if machine_name.startswith("V"):
+            cut_dim = block_l
+        else:
+            cut_dim = min(block_w, block_l)
     elif cut_type == 'width':
-        cut_dim = min(block_h, block_l)
+        if machine_name.startswith("V"):
+            cut_dim = block_l
+        else:
+            cut_dim = min(block_h, block_l)
     elif cut_type == 'dia':
-        # For dia cut, both width and height are the diameter
-        cut_dim = block_w  # since block_w and block_h are the same in this case
+        cut_dim = block_w  # dia stays as-is
     else:
         raise ValueError("Invalid cut type. Choose 'length', 'height', 'width', or 'dia'.")
-
+    
     time_required = cut_dim / feed_rate
     return time_required
 
@@ -95,13 +101,11 @@ def calculate():
         width = final_dim
         selected_dimensions = (height, length)
     elif cut_type == 'dia':
-        diameter = final_dim  # the user enters the final diameter
+        diameter = final_dim
         width = diameter
         height = diameter
         block_dimensions = (width, height, length)
-
-    # Selected dimensions for machine capacity check
-        selected_dimensions = (diameter, diameter)  # Updating block dimensions for the cylindrical block
+        selected_dimensions = (diameter, diameter)
     else:
         raise ValueError("Invalid cut type.")
 
@@ -110,7 +114,12 @@ def calculate():
 
     results = []
     for machine in closest_machines:
-        time = calculate_cutting_time(machine['Feed Rate'], block_dimensions, cut_type)
+        time = calculate_cutting_time(
+            machine['Feed Rate'],
+            block_dimensions,
+            cut_type,
+            machine['Machine Name']
+        )
         results.append({
             'machine_name': machine['Machine Name'],
             'cutting_time': round(time, 2)
