@@ -31,11 +31,13 @@ machine_data = [
     {'ID': 26, 'Machine Name': 'B2', 'Capacity': (800, 800), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 1.5}
 ]
 
-def get_closest_machines(selected_dimensions, steel_grade):
+def get_closest_machines(selected_dimensions, steel_grade, cut_type):
     dim_1, dim_2 = selected_dimensions
     closest_machines = []
 
     for machine in machine_data:
+        if cut_type == "dia" and machine['Machine Name'].startswith("V"):
+            continue
         capacity_1, capacity_2 = machine['Capacity']
         feed_rate = machine[f'Feed {steel_grade} (mm/min)'] if steel_grade != "PMS" else machine['Feed PMS (mm/min)']
 
@@ -113,7 +115,8 @@ def calculate():
         raise ValueError("Invalid cut type.")
 
     block_dimensions = (width, height, length)
-    closest_machines = get_closest_machines(selected_dimensions, steel_grade)
+    closest_machines = get_closest_machines(selected_dimensions, steel_grade, cut_type)
+
 
     results = []
     for machine in closest_machines:
