@@ -5,6 +5,7 @@ function calculateCuttingTime() {
     const steelGrade = document.getElementById("grade").value;
     const cutType = document.getElementById("cut-type").value;
     const finalDimension = document.getElementById("final-dimension").value;
+    const numCuts = document.getElementById('num_cuts').value;
 
     const requestData = {
         height: height,
@@ -12,22 +13,26 @@ function calculateCuttingTime() {
         length: length,
         steel_grade: steelGrade,
         cut_type: cutType,
-        final_dimension: finalDimension
+        final_dimension: finalDimension,
+        num_cuts: numCuts
     };
 
     fetch('/calculate', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestData)
     })
     .then(response => response.json())
     .then(data => {
         let resultsDiv = document.getElementById("results");
         resultsDiv.innerHTML = "";
+
         data.forEach(result => {
-            resultsDiv.innerHTML += `Machine: ${result.machine_name}, Cutting Time: ${result.cutting_time} minutes<br>`;
+            resultsDiv.innerHTML += `
+                Machine: ${result.machine_name} <br>
+                Cutting Time: ${result.cutting_time} minutes <br>
+                Sq Inches (Total ${numCuts} cut${numCuts > 1 ? 's' : ''}): ${result.sq_inches} <br><br>
+            `;
         });
     })
     .catch(error => console.error('Error:', error));

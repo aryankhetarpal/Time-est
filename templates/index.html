@@ -5,17 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cutting Time Calculator</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
-        label, select, input {
-            display: block;
-            margin: 10px 0;
-        }
-        .form-section {
-            margin-bottom: 20px;
-        }
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        label, select, input { display: block; margin: 10px 0; }
+        .form-section { margin-bottom: 20px; }
     </style>
 </head>
 <body>
@@ -23,18 +15,18 @@
     
     <div class="form-section">
         <label for="height">Block Height (mm):</label>
-        <input type="number" id="height" name="height" required>
+        <input type="number" id="height" required>
         
         <label for="width">Block Width (mm):</label>
-        <input type="number" id="width" name="width" required>
+        <input type="number" id="width" required>
         
         <label for="length">Block Length (mm):</label>
-        <input type="number" id="length" name="length" required>
+        <input type="number" id="length" required>
     </div>
     
     <div class="form-section">
         <label for="steel_grade">Steel Grade:</label>
-        <select id="steel_grade" name="steel_grade">
+        <select id="steel_grade">
             <option value="PMS">PMS</option>
             <option value="2714/2316/Nitro B">2714/2316/Nitro B</option>
         </select>
@@ -42,7 +34,7 @@
     
     <div class="form-section">
         <label for="cut_type">Cut Type:</label>
-        <select id="cut_type" name="cut_type">
+        <select id="cut_type">
             <option value="length">Length Cut</option>
             <option value="width">Width Cut</option>
             <option value="height">Height Cut</option>
@@ -52,70 +44,45 @@
 
     <div class="form-section">
         <label for="final_dimension">Final Dimension (mm):</label>
-        <input type="number" id="final_dimension" name="final_dimension" required>
+        <input type="number" id="final_dimension" required>
+        
+        <label for="num_cuts">Number of Cuts:</label>
+        <input type="number" id="num_cuts" value="1" min="1" required>
     </div>
 
     <button id="calculateButton">Calculate Machining Time</button>
-    
+
     <h2>Results:</h2>
     <ul id="results"></ul>
 
     <script>
         document.getElementById('calculateButton').addEventListener('click', function() {
-            const height = document.getElementById('height').value;
-            const width = document.getElementById('width').value;
-            const length = document.getElementById('length').value;
-            const steelGrade = document.getElementById('steel_grade').value;
-            const cutType = document.getElementById('cut_type').value;
-            const finalDimension = document.getElementById('final_dimension').value;
-
-            if (!height || !width || !length || !finalDimension) {
-                alert("Please fill in all fields.");
-                return;
-            }
-
             const data = {
-                height: height,
-                width: width,
-                length: length,
-                steel_grade: steelGrade,
-                cut_type: cutType,
-                final_dimension: finalDimension
+                height: document.getElementById('height').value,
+                width: document.getElementById('width').value,
+                length: document.getElementById('length').value,
+                steel_grade: document.getElementById('steel_grade').value,
+                cut_type: document.getElementById('cut_type').value,
+                final_dimension: document.getElementById('final_dimension').value,
+                num_cuts: document.getElementById('num_cuts').value
             };
 
             fetch('/calculate', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             })
-            .then(response => response.json())
+            .then(res => res.json())
             .then(results => {
                 const resultsList = document.getElementById('results');
                 resultsList.innerHTML = '';
-                
                 results.forEach(result => {
                     const li = document.createElement('li');
-                    li.textContent = `Machine: ${result.machine_name}, Cutting Time: ${result.cutting_time} minutes`;
+                    li.textContent = `Machine: ${result.machine_name}, Cutting Time: ${result.cutting_time} min, Sq Inches: ${result.sq_inches}`;
                     resultsList.appendChild(li);
                 });
             })
-            .catch(error => console.error('Error:', error));
-        });
-
-        document.getElementById('cut_type').addEventListener('change', function() {
-            const cutType = document.getElementById('cut_type').value;
-            const diaNote = document.getElementById('dia-note');
-
-            if (cutType === 'dia') {
-        // Show note for cylindrical block
-                diaNote.style.display = 'block';
-            } else {
-                diaNote.style.display = 'none';
-            }
-            // If "dia cut" is selected, adjust the form to only need the final diameter (set width/height equal).
-            
+            .catch(err => console.error(err));
         });
     </script>
 </body>
