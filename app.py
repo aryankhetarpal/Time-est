@@ -76,6 +76,28 @@ def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name):
     
     return cut_dim / feed_rate
 
+def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
+    """Calculate square inches for given cut type and number of cuts."""
+    block_w, block_h, block_l = block_dimensions
+    
+    if cut_type == "height":
+        area_mm = block_w * block_l
+    elif cut_type == "length":
+        area_mm = block_w * block_h
+    elif cut_type == "width":
+        area_mm = block_h * block_l
+    elif cut_type == "dia":
+        # circular area
+        radius = block_w / 2
+        area_mm = 3.14159 * (radius ** 2)
+    else:
+        raise ValueError("Invalid cut type.")
+    
+    # convert mm² to in² (1 in = 25.4 mm → 1 in² = 25.4² mm²)
+    area_in2 = area_mm / (25.4 ** 2)
+    total_area = area_in2 * num_cuts
+    return round(total_area, 2)
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -89,6 +111,7 @@ def calculate():
     steel_grade = data['steel_grade']
     cut_type = data['cut_type']
     final_dim = int(data['final_dimension'])
+    num_cuts = int(data.get('num_cuts', 1))
 
     block_dimensions = (width, height, length)
 
@@ -121,9 +144,11 @@ def calculate():
             cut_type,
             machine['Machine Name']
         )
+        sq_inches = calculate_sq_inches(block_dimensions, cut_type, num_cuts)
         results.append({
             'machine_name': machine['Machine Name'],
-            'cutting_time': round(time, 2)
+            'cutting_time': round(time, 2),
+            'sq_inches': sq_inches
         })
 
     return jsonify(results)
