@@ -94,7 +94,7 @@ def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
         raise ValueError("Invalid cut type.")
     
     # convert mm² to in² (1 in = 25.4 mm → 1 in² = 25.4² mm²)
-    area_in2 = area_mm / (25.4 ** 2)
+    area_in2 = area_mm / (25 ** 2)
     total_area = area_in2 * num_cuts
     return round(total_area, 2)
 
