@@ -39,104 +39,79 @@ def get_feed_rate_for_grade(machine, steel_grade):
         return machine.get('Feed PMS (mm/min)')
     if g in ('2714', '2316', 'nitro b', 'nitrob', 'nitro_b'):
         return machine.get('Feed 2714/2316/Nitro B (mm/min)')
+    # fallback: exact key or PMS
     return machine.get(f'Feed {steel_grade} (mm/min)', machine.get('Feed PMS (mm/min)', None))
 
-def get_closest_machines(selected_dimensions, steel_grade, cut_type):
-    dim_1, dim_2 = selected_dimensions
-    closest_machines = []
-
-    for machine in machine_data:
-        if cut_type == "dia" and machine['Machine Name'].startswith("V"):
-            continue
-
-        capacity_1, capacity_2 = machine['Capacity']
-        feed_rate = get_feed_rate_for_grade(machine, steel_grade)
-        if feed_rate is None:
-            continue
-
-        if capacity_1 >= dim_1 and capacity_2 >= dim_2:
-            diff = abs(capacity_1 - dim_1) + abs(capacity_2 - dim_2)
-            closest_machines.append({
-                'Machine Name': machine['Machine Name'],
-                'Feed Rate': feed_rate,
-                'Difference': diff
-            })
-
-    closest_machines.sort(key=lambda x: x['Difference'])
-    return closest_machines
 
 def calculate_cutting_time(feed_rate, block_dimensions, cut_type, num_cuts, final_dim=None):
-    w, h, l = block_dimensions
+    """Return total time in minutes (float)."""
+    if not feed_rate or feed_rate <= 0:
+        return None  # feed missing
+
+    block_w, block_h, block_l = block_dimensions
 
     if cut_type == 'length':
-        cut_dim = min(w, h)
+        cut_dim = min(block_w, block_h)
     elif cut_type == 'height':
-        cut_dim = min(w, l)
+        cut_dim = min(block_w, block_l)
     elif cut_type == 'width':
-        cut_dim = min(h, l)
+        cut_dim = min(block_h, block_l)
     elif cut_type == 'dia':
-        cut_dim = final_dim if final_dim else w
+        cut_dim = final_dim if final_dim is not None else block_w
     else:
-        raise ValueError("Invalid cut type.")
+        return None
 
-    return round((cut_dim / feed_rate) * num_cuts, 2)
+    time_per_cut = cut_dim / feed_rate  # minutes
+    total_time = time_per_cut * num_cuts
+    return round(total_time, 2)
+
 
 def calculate_sq_inches(block_dimensions, cut_type, num_cuts, final_dim=None):
-    w, h, l = block_dimensions
+    """Return total square inches (float)."""
+    block_w, block_h, block_l = block_dimensions
 
     if cut_type == "height":
-        area_mm2 = w * l
+        area_mm2 = block_w * block_l
     elif cut_type == "length":
-        area_mm2 = w * h
+        area_mm2 = block_w * block_h
     elif cut_type == "width":
-        area_mm2 = h * l
+        area_mm2 = block_h * block_l
     elif cut_type == "dia":
-        diameter = final_dim if final_dim else w
-        r = diameter / 2
-        area_mm2 = 3.141592653589793 * (r ** 2)
+        diameter = final_dim if final_dim is not None else block_w
+        radius = diameter / 2
+        area_mm2 = 3.141592653589793 * (radius ** 2)
     else:
-        raise ValueError("Invalid cut type.")
+        return None
 
     area_in2 = area_mm2 / (25.4 ** 2)
     return round(area_in2 * num_cuts, 2)
 
-# ------------------- routes -------------------
-
-@app.route('/')
-def index():
-    return render_template('index.html')
 
 @app.route('/calculate', methods=['POST'])
 def calculate():
     data = request.json
-    h = int(data['height'])
-    w = int(data['width'])
-    l = int(data['length'])
-    steel_grade = data['steel_grade']
-    cut_type = data['cut_type']
-    final_dim = int(data['final_dimension'])
-    num_cuts = int(data.get('num_cuts', 1))
+    block_w = float(data.get('width', 0))
+    block_h = float(data.get('height', 0))
+    block_l = float(data.get('length', 0))
+    steel_grade = data.get('steelGrade')
+    cut_type = data.get('cutType')
+    final_dim = float(data['finalDimension']) if data.get('finalDimension') else None
+    num_cuts = int(data.get('numCuts', 1))
 
-    block_dimensions = (w, h, l)
+    block_dimensions = (block_w, block_h, block_l)
 
-    if cut_type == 'length':
-        l = final_dim
-        selected_dimensions = (w, h)
-    elif cut_type == 'height':
-        h = final_dim
-        selected_dimensions = (w, l)
-    elif cut_type == 'width':
-        w = final_dim
-        selected_dimensions = (h, l)
-    elif cut_type == 'dia':
-        w = final_dim
-        h = final_dim
-        block_dimensions = (w, h, l)
-        selected_dimensions = (final_dim, final_dim)
+    # choose comparison dims for machine selection
+    if cut_type == "height":
+        selected_dimensions = (block_w, block_l)
+    elif cut_type == "length":
+        selected_dimensions = (block_w, block_h)
+    elif cut_type == "width":
+        selected_dimensions = (block_h, block_l)
+    elif cut_type == "dia":
+        selected_dimensions = (final_dim if final_dim else block_w, block_h)
     else:
-        raise ValueError("Invalid cut type.")
+        return jsonify({'error': 'Invalid cut type'}), 400
 
-    block_dimensions = (w, h, l)
     closest_machines = get_closest_machines(selected_dimensions, steel_grade, cut_type)
 
     results = []
@@ -149,13 +124,11 @@ def calculate():
             final_dim
         )
         sq_inches = calculate_sq_inches(block_dimensions, cut_type, num_cuts, final_dim)
+
         results.append({
             'machine_name': machine['Machine Name'],
-            'cutting_time_minutes': time_total,
-            'sq_inches': sq_inches
+            'cutting_time_minutes': time_total if time_total is not None else "Feed rate missing",
+            'sq_inches': sq_inches if sq_inches is not None else "Error calculating area"
         })
 
-    return jsonify(results)
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    return jsonify({'results': results})
