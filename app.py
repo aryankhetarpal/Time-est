@@ -141,7 +141,8 @@ def calculate():
             machine['Feed Rate'],
             block_dimensions,
             cut_type,
-            machine['Machine Name']
+            machine['Machine Name'],
+            num_cuts
         )
         sq_inches = calculate_sq_inches(block_dimensions, cut_type, num_cuts)
         results.append({
