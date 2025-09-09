@@ -60,7 +60,7 @@ def get_closest_machines(selected_dimensions, steel_grade, cut_type):
     closest_machines.sort(key=lambda x: x['Difference'])
     return closest_machines
 
-def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name, num_cuts):
+def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name):
     block_w, block_h, block_l = block_dimensions
     
     if cut_type == 'length':
@@ -74,9 +74,9 @@ def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name, 
     else:
         raise ValueError("Invalid cut type. Choose 'length', 'height', 'width', or 'dia'.")
     
-    return cut_dim / feed_rate * num_cuts
+    return cut_dim / feed_rate
 
-def calculate_sq_inches(block_dimensions, cut_type, num_cuts, final_dim=None):
+def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
     """Calculate square inches for given cut type and number of cuts."""
     block_w, block_h, block_l = block_dimensions
     
@@ -87,8 +87,8 @@ def calculate_sq_inches(block_dimensions, cut_type, num_cuts, final_dim=None):
     elif cut_type == "width":
         area_mm = block_h * block_l
     elif cut_type == "dia":
-        diameter = final_dim if final_dim else block_w
-        radius = diameter / 2
+        # circular area
+        radius = block_w / 2
         area_mm = 3.14159 * (radius ** 2)
     else:
         raise ValueError("Invalid cut type.")
