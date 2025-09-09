@@ -31,72 +31,76 @@ machine_data = [
     {'ID': 26, 'Machine Name': 'B2', 'Capacity': (800, 800), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 1.5}
 ]
 
+# ------------------- helpers -------------------
+
+def get_feed_rate_for_grade(machine, steel_grade):
+    g = (steel_grade or "").strip().lower()
+    if g == 'pms':
+        return machine.get('Feed PMS (mm/min)')
+    if g in ('2714', '2316', 'nitro b', 'nitrob', 'nitro_b'):
+        return machine.get('Feed 2714/2316/Nitro B (mm/min)')
+    return machine.get(f'Feed {steel_grade} (mm/min)', machine.get('Feed PMS (mm/min)', None))
+
 def get_closest_machines(selected_dimensions, steel_grade, cut_type):
     dim_1, dim_2 = selected_dimensions
     closest_machines = []
 
     for machine in machine_data:
-        # Skip V machines if cut_type is dia
         if cut_type == "dia" and machine['Machine Name'].startswith("V"):
             continue
 
         capacity_1, capacity_2 = machine['Capacity']
-        feed_rate = machine.get(f'Feed {steel_grade} (mm/min)', machine.get('Feed PMS (mm/min)', None))
-
+        feed_rate = get_feed_rate_for_grade(machine, steel_grade)
         if feed_rate is None:
             continue
 
-        # Machine must handle both dimensions
         if capacity_1 >= dim_1 and capacity_2 >= dim_2:
-            dim_1_diff = abs(capacity_1 - dim_1)
-            dim_2_diff = abs(capacity_2 - dim_2)
-            total_diff = dim_1_diff + dim_2_diff
+            diff = abs(capacity_1 - dim_1) + abs(capacity_2 - dim_2)
             closest_machines.append({
                 'Machine Name': machine['Machine Name'],
                 'Feed Rate': feed_rate,
-                'Difference': total_diff
+                'Difference': diff
             })
 
     closest_machines.sort(key=lambda x: x['Difference'])
     return closest_machines
 
-def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name):
-    block_w, block_h, block_l = block_dimensions
-    
-    if cut_type == 'length':
-        cut_dim = block_w if machine_name.startswith("V") else min(block_h, block_w)
-    elif cut_type == 'height':
-        cut_dim = block_l if machine_name.startswith("V") else min(block_w, block_l)
-    elif cut_type == 'width':
-        cut_dim = block_l if machine_name.startswith("V") else min(block_h, block_l)
-    elif cut_type == 'dia':
-        cut_dim = block_w  # keep dia as-is
-    else:
-        raise ValueError("Invalid cut type. Choose 'length', 'height', 'width', or 'dia'.")
-    
-    return cut_dim / feed_rate
+def calculate_cutting_time(feed_rate, block_dimensions, cut_type, num_cuts, final_dim=None):
+    w, h, l = block_dimensions
 
-def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
-    """Calculate square inches for given cut type and number of cuts."""
-    block_w, block_h, block_l = block_dimensions
-    
-    if cut_type == "height":
-        area_mm = block_w * block_l
-    elif cut_type == "length":
-        area_mm = block_w * block_h
-    elif cut_type == "width":
-        area_mm = block_h * block_l
-    elif cut_type == "dia":
-        # circular area
-        radius = block_w / 2
-        area_mm = 3.14159 * (radius ** 2)
+    if cut_type == 'length':
+        cut_dim = min(w, h)
+    elif cut_type == 'height':
+        cut_dim = min(w, l)
+    elif cut_type == 'width':
+        cut_dim = min(h, l)
+    elif cut_type == 'dia':
+        cut_dim = final_dim if final_dim else w
     else:
         raise ValueError("Invalid cut type.")
-    
-    # convert mm² to in² (1 in = 25.4 mm → 1 in² = 25.4² mm²)
-    area_in2 = area_mm / (25 ** 2)
-    total_area = area_in2 * num_cuts
-    return round(total_area, 2)
+
+    return round((cut_dim / feed_rate) * num_cuts, 2)
+
+def calculate_sq_inches(block_dimensions, cut_type, num_cuts, final_dim=None):
+    w, h, l = block_dimensions
+
+    if cut_type == "height":
+        area_mm2 = w * l
+    elif cut_type == "length":
+        area_mm2 = w * h
+    elif cut_type == "width":
+        area_mm2 = h * l
+    elif cut_type == "dia":
+        diameter = final_dim if final_dim else w
+        r = diameter / 2
+        area_mm2 = 3.141592653589793 * (r ** 2)
+    else:
+        raise ValueError("Invalid cut type.")
+
+    area_in2 = area_mm2 / (25.4 ** 2)
+    return round(area_in2 * num_cuts, 2)
+
+# ------------------- routes -------------------
 
 @app.route('/')
 def index():
@@ -105,49 +109,49 @@ def index():
 @app.route('/calculate', methods=['POST'])
 def calculate():
     data = request.json
-    height = int(data['height'])
-    width = int(data['width'])
-    length = int(data['length'])
+    h = int(data['height'])
+    w = int(data['width'])
+    l = int(data['length'])
     steel_grade = data['steel_grade']
     cut_type = data['cut_type']
     final_dim = int(data['final_dimension'])
     num_cuts = int(data.get('num_cuts', 1))
 
-    block_dimensions = (width, height, length)
+    block_dimensions = (w, h, l)
 
     if cut_type == 'length':
-        length = final_dim
-        selected_dimensions = (width, height)
+        l = final_dim
+        selected_dimensions = (w, h)
     elif cut_type == 'height':
-        height = final_dim
-        selected_dimensions = (width, length)
+        h = final_dim
+        selected_dimensions = (w, l)
     elif cut_type == 'width':
-        width = final_dim
-        selected_dimensions = (height, length)
+        w = final_dim
+        selected_dimensions = (h, l)
     elif cut_type == 'dia':
-        diameter = final_dim
-        width = diameter
-        height = diameter
-        block_dimensions = (width, height, length)
-        selected_dimensions = (diameter, diameter)
+        w = final_dim
+        h = final_dim
+        block_dimensions = (w, h, l)
+        selected_dimensions = (final_dim, final_dim)
     else:
         raise ValueError("Invalid cut type.")
 
-    block_dimensions = (width, height, length)
+    block_dimensions = (w, h, l)
     closest_machines = get_closest_machines(selected_dimensions, steel_grade, cut_type)
 
     results = []
     for machine in closest_machines:
-        time = calculate_cutting_time(
+        time_total = calculate_cutting_time(
             machine['Feed Rate'],
             block_dimensions,
             cut_type,
-            machine['Machine Name']
+            num_cuts,
+            final_dim
         )
-        sq_inches = calculate_sq_inches(block_dimensions, cut_type, num_cuts)
+        sq_inches = calculate_sq_inches(block_dimensions, cut_type, num_cuts, final_dim)
         results.append({
             'machine_name': machine['Machine Name'],
-            'cutting_time': round(time, 2),
+            'cutting_time_minutes': time_total,
             'sq_inches': sq_inches
         })
 
