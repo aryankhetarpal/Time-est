@@ -88,8 +88,7 @@ def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
         area_mm = block_h * block_l
     elif cut_type == "dia":
         # circular area
-        radius = block_w / 2
-        area_mm = 3.14159 * (radius ** 2)
+        area_mm = block_w * block_h
     else:
         raise ValueError("Invalid cut type.")
     
