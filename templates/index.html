@@ -1,89 +1,96 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cutting Time Calculator</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        label, select, input { display: block; margin: 10px 0; }
-        .form-section { margin-bottom: 20px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Cutting Time Calculator</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, select, button { margin: 5px; padding: 5px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #f2f2f2; }
+    tr.unfit { background-color: #fdd; }  /* highlight machines that can't cut */
+  </style>
 </head>
 <body>
-    <h1>Cutting Time Calculator</h1>
-    
-    <div class="form-section">
-        <label for="height">Block Height (mm):</label>
-        <input type="number" id="height" required>
-        
-        <label for="width">Block Width (mm):</label>
-        <input type="number" id="width" required>
-        
-        <label for="length">Block Length (mm):</label>
-        <input type="number" id="length" required>
-    </div>
-    
-    <div class="form-section">
-        <label for="steel_grade">Steel Grade:</label>
-        <select id="steel_grade">
-            <option value="PMS">PMS</option>
-            <option value="2714/2316/Nitro B">2714/2316/Nitro B</option>
-        </select>
-    </div>
-    
-    <div class="form-section">
-        <label for="cut_type">Cut Type:</label>
-        <select id="cut_type">
-            <option value="length">Length Cut</option>
-            <option value="width">Width Cut</option>
-            <option value="height">Height Cut</option>
-            <option value="dia">Dia Cut (Cylindrical Block)</option>
-        </select>
-    </div>
+  <h2>Cutting Time Calculator</h2>
 
-    <div class="form-section">
-        <label for="final_dimension">Final Dimension (mm):</label>
-        <input type="number" id="final_dimension" required>
-        
-        <label for="num_cuts">Number of Cuts:</label>
-        <input type="number" id="num_cuts" value="1" min="1" required>
-    </div>
+  <label>Height (mm): <input type="number" id="height" required></label>
+  <label>Width (mm): <input type="number" id="width" required></label>
+  <label>Length (mm): <input type="number" id="length" required></label><br>
 
-    <button id="calculateButton">Calculate Machining Time</button>
+  <label>Steel Grade:
+    <select id="grade">
+      <option value="PMS">PMS</option>
+      <option value="2714/2316/Nitro B">2714/2316/Nitro B</option>
+    </select>
+  </label>
 
-    <h2>Results:</h2>
-    <ul id="results"></ul>
+  <label>Cut Type:
+    <select id="cut-type">
+      <option value="length">Length</option>
+      <option value="height">Height</option>
+      <option value="width">Width</option>
+      <option value="dia">Dia</option>
+    </select>
+  </label>
 
-    <script>
-        document.getElementById('calculateButton').addEventListener('click', function() {
-            const data = {
-                height: document.getElementById('height').value,
-                width: document.getElementById('width').value,
-                length: document.getElementById('length').value,
-                steel_grade: document.getElementById('steel_grade').value,
-                cut_type: document.getElementById('cut_type').value,
-                final_dimension: document.getElementById('final_dimension').value,
-                num_cuts: document.getElementById('num_cuts').value
-            };
+  <label>Final Dimension (mm): <input type="number" id="final-dimension" required></label>
+  <label>Number of Cuts: <input type="number" id="num-cuts" value="1"></label>
 
-            fetch('/calculate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            })
-            .then(res => res.json())
-            .then(results => {
-                const resultsList = document.getElementById('results');
-                resultsList.innerHTML = '';
-                results.forEach(result => {
-                    const li = document.createElement('li');
-                    li.textContent = `Machine: ${result.machine_name}, Cutting Time: ${result.cutting_time} min, Sq Inches: ${result.sq_inches}`;
-                    resultsList.appendChild(li);
-                });
-            })
-            .catch(err => console.error(err));
-        });
-    </script>
+  <br><br>
+  <button onclick="calculateCuttingTime()">Calculate</button>
+
+  <table id="results-table" style="display:none;">
+    <thead>
+      <tr>
+        <th>Machine Name</th>
+        <th>Cutting Time (min)</th>
+        <th>Square Inches (in²)</th>
+        <th>Can Cut?</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    async function calculateCuttingTime() {
+      const payload = {
+        height: document.getElementById("height").value,
+        width: document.getElementById("width").value,
+        length: document.getElementById("length").value,
+        steel_grade: document.getElementById("grade").value,
+        cut_type: document.getElementById("cut-type").value,
+        final_dimension: document.getElementById("final-dimension").value,
+        num_cuts: document.getElementById("num-cuts").value
+      };
+
+      const response = await fetch("/calculate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const results = await response.json();
+      const table = document.getElementById("results-table");
+      const tbody = table.querySelector("tbody");
+      tbody.innerHTML = "";
+
+      results.forEach(machine => {
+        const row = document.createElement("tr");
+        if (!machine.can_cut) row.classList.add("unfit"); // mark unsuitable machines
+
+        row.innerHTML = `
+          <td>${machine.machine_name}</td>
+          <td>${machine.cutting_time}</td>
+          <td>${machine.sq_inches}</td>
+          <td>${machine.can_cut ? "✅ Yes" : "❌ No"}</td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      table.style.display = "table";
+    }
+  </script>
 </body>
 </html>
