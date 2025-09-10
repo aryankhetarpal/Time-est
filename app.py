@@ -133,25 +133,48 @@ def calculate():
         raise ValueError("Invalid cut type.")
 
     block_dimensions = (width, height, length)
-    closest_machines = get_closest_machines(selected_dimensions, steel_grade, cut_type)
 
-    results = []
-    for machine in closest_machines:
+    # --- New Step: Evaluate ALL machines ---
+    all_results = []
+    for machine in machine_data:
+        # Skip V machines if cut_type is dia
+        if cut_type == "dia" and machine['Machine Name'].startswith("V"):
+            continue
+
+        capacity_1, capacity_2 = machine['Capacity']
+        feed_rate = machine.get(f'Feed {steel_grade} (mm/min)', machine.get('Feed PMS (mm/min)', None))
+        if feed_rate is None:
+            continue
+
+        # Check if block fits
+        can_cut = capacity_1 >= selected_dimensions[0] and capacity_2 >= selected_dimensions[1]
+
+        # Calculate "closeness" only if it fits
+        difference = None
+        if can_cut:
+            difference = abs(capacity_1 - selected_dimensions[0]) + abs(capacity_2 - selected_dimensions[1])
+
         time = calculate_cutting_time(
-            machine['Feed Rate'],
+            feed_rate,
             block_dimensions,
             cut_type,
             machine['Machine Name'],
             num_cuts
         )
         sq_inches = calculate_sq_inches(block_dimensions, cut_type, num_cuts)
-        results.append({
+
+        all_results.append({
             'machine_name': machine['Machine Name'],
             'cutting_time': round(time, 2),
-            'sq_inches': sq_inches
+            'sq_inches': sq_inches,
+            'difference': difference if difference is not None else float("inf")
         })
 
-    return jsonify(results)
+    # Sort: closest first, then others
+    all_results.sort(key=lambda x: (x['difference'], x['cutting_time']))
+
+    return jsonify(all_results)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
