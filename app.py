@@ -31,35 +31,6 @@ machine_data = [
     {'ID': 26, 'Machine Name': 'B2', 'Capacity': (800, 800), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 1.5}
 ]
 
-def get_closest_machines(selected_dimensions, steel_grade, cut_type):
-    dim_1, dim_2 = selected_dimensions
-    closest_machines = []
-
-    for machine in machine_data:
-        # Skip V machines if cut_type is dia
-        if cut_type == "dia" and machine['Machine Name'].startswith("V"):
-            continue
-
-        capacity_1, capacity_2 = machine['Capacity']
-        feed_rate = machine.get(f'Feed {steel_grade} (mm/min)', machine.get('Feed PMS (mm/min)', None))
-
-        if feed_rate is None:
-            continue
-
-        # Machine must handle both dimensions
-        if capacity_1 >= dim_1 and capacity_2 >= dim_2:
-            dim_1_diff = abs(capacity_1 - dim_1)
-            dim_2_diff = abs(capacity_2 - dim_2)
-            total_diff = dim_1_diff + dim_2_diff
-            closest_machines.append({
-                'Machine Name': machine['Machine Name'],
-                'Feed Rate': feed_rate,
-                'Difference': total_diff
-            })
-
-    closest_machines.sort(key=lambda x: x['Difference'])
-    return closest_machines
-
 def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name, num_cuts):
     block_w, block_h, block_l = block_dimensions
     
@@ -70,14 +41,13 @@ def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name, 
     elif cut_type == 'width':
         cut_dim = max(block_h, block_l) if machine_name.startswith("V") else min(block_h, block_l)
     elif cut_type == 'dia':
-        cut_dim = block_w  # keep dia as-is
+        cut_dim = block_w  # dia assumed as width
     else:
-        raise ValueError("Invalid cut type. Choose 'length', 'height', 'width', or 'dia'.")
+        raise ValueError("Invalid cut type.")
     
     return (cut_dim / feed_rate) * num_cuts
 
 def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
-    """Calculate square inches for given cut type and number of cuts."""
     block_w, block_h, block_l = block_dimensions
     
     if cut_type == "height":
@@ -87,15 +57,12 @@ def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
     elif cut_type == "width":
         area_mm = block_h * block_l
     elif cut_type == "dia":
-        # circular area
         area_mm = block_w * block_h
     else:
         raise ValueError("Invalid cut type.")
     
-    
     area_in2 = area_mm / (25 ** 2)
-    total_area = area_in2 * num_cuts
-    return round(total_area, 2)
+    return round(area_in2 * num_cuts, 2)
 
 @app.route('/')
 def index():
@@ -134,10 +101,8 @@ def calculate():
 
     block_dimensions = (width, height, length)
 
-    # --- New Step: Evaluate ALL machines ---
-    all_results = []
+    results = []
     for machine in machine_data:
-        # Skip V machines if cut_type is dia
         if cut_type == "dia" and machine['Machine Name'].startswith("V"):
             continue
 
@@ -146,35 +111,19 @@ def calculate():
         if feed_rate is None:
             continue
 
-        # Check if block fits
         can_cut = capacity_1 >= selected_dimensions[0] and capacity_2 >= selected_dimensions[1]
 
-        # Calculate "closeness" only if it fits
-        difference = None
-        if can_cut:
-            difference = abs(capacity_1 - selected_dimensions[0]) + abs(capacity_2 - selected_dimensions[1])
-
-        time = calculate_cutting_time(
-            feed_rate,
-            block_dimensions,
-            cut_type,
-            machine['Machine Name'],
-            num_cuts
-        )
+        time = calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine['Machine Name'], num_cuts)
         sq_inches = calculate_sq_inches(block_dimensions, cut_type, num_cuts)
 
-        all_results.append({
+        results.append({
             'machine_name': machine['Machine Name'],
             'cutting_time': round(time, 2),
             'sq_inches': sq_inches,
-            'difference': difference if difference is not None else float("inf")
+            'can_cut': can_cut
         })
 
-    # Sort: closest first, then others
-    all_results.sort(key=lambda x: (x['difference'], x['cutting_time']))
-
-    return jsonify(all_results)
-
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(debug=True)

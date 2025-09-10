@@ -40,6 +40,7 @@ function calculateCuttingTime() {
                         <th>Machine</th>
                         <th>Cutting Time (min)</th>
                         <th>Sq Inches (Total for ${numCuts} cut${numCuts > 1 ? 's' : ''})</th>
+                        <th>Can Cut?</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -47,10 +48,11 @@ function calculateCuttingTime() {
 
         data.forEach(result => {
             table += `
-                <tr>
+                <tr style="background-color:${result.can_cut ? '#e6ffe6' : '#ffe6e6'}">
                     <td>${result.machine_name}</td>
                     <td>${Number(result.cutting_time).toFixed(2)}</td>
                     <td>${Number(result.sq_inches).toFixed(2)}</td>
+                    <td>${result.can_cut ? "✅ Yes" : "❌ No"}</td>
                 </tr>
             `;
         });
