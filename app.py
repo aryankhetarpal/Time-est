@@ -46,7 +46,6 @@ def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name, 
 
     return (cut_dim / feed_rate) * num_cuts
 
-
 def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
     block_w, block_h, block_l = block_dimensions
 
@@ -63,7 +62,6 @@ def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
     area_in2 = area_mm / (25 ** 2)
     return round(area_in2 * num_cuts, 2)
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -71,38 +69,41 @@ def index():
 @app.route('/calculate', methods=['POST'])
 def calculate():
     data = request.json
-    height = int(data['height'])
+
+    # Detect if height is "Dia" (case-insensitive)
+    height_input = str(data['height']).strip()
+    if height_input.lower() == 'dia':
+        cut_type = 'dia'
+        height = None  # will set later
+    else:
+        height = int(height_input)
+        cut_type = data['cut_type']
+
     width = int(data['width'])
     length = int(data['length'])
     steel_grade = data['steel_grade']
-    cut_type = data['cut_type']
     final_dim = int(data['final_dimension'])
     num_cuts = int(data.get('num_cuts', 1))
 
-    # Default block dimensions
-    block_dimensions = (width, height, length)
-
+    # Set block dimensions based on cut type
     if cut_type == 'length':
-        # For length cut, final_dim changes the length
         length = final_dim
+        block_dimensions = (width, height, length)
         selected_dimensions = (width, height)
     elif cut_type == 'height':
         height = final_dim
+        block_dimensions = (width, height, length)
         selected_dimensions = (width, length)
     elif cut_type == 'width':
         width = final_dim
+        block_dimensions = (height, width, length)  # swap to match function expectation
         selected_dimensions = (height, length)
     elif cut_type == 'dia':
-        # Keep original length, but width & height = diameter
         diameter = final_dim
         block_dimensions = (diameter, diameter, length)
-        selected_dimensions = (diameter)
+        selected_dimensions = (diameter, diameter)
     else:
         raise ValueError("Invalid cut type.")
-
-    # Update block_dimensions for length/height/width cuts
-    if cut_type != 'dia':
-        block_dimensions = (width, height, length)
 
     results = []
     for machine in machine_data:
@@ -127,3 +128,6 @@ def calculate():
         })
 
     return jsonify(results)
+
+if __name__ == '__main__':
+    app.run(debug=True)
