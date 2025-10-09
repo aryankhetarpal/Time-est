@@ -33,36 +33,36 @@ machine_data = [
 
 def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name, num_cuts):
     block_w, block_h, block_l = block_dimensions
-    
-    if cut_type == 'length':
+
+    # Treat "dia" exactly like "length"
+    if cut_type in ['length', 'dia']:
         cut_dim = max(block_h, block_w) if machine_name.startswith("V") else min(block_h, block_w)
     elif cut_type == 'height':
         cut_dim = max(block_w, block_l) if machine_name.startswith("V") else min(block_w, block_l)
     elif cut_type == 'width':
         cut_dim = max(block_h, block_l) if machine_name.startswith("V") else min(block_h, block_l)
-    elif cut_type == 'dia':
-        cut_dim = max(block_h, block_w) if machine_name.startswith("V") else min(block_h, block_w)  # dia assumed as width
     else:
         raise ValueError("Invalid cut type.")
-    
+
     return (cut_dim / feed_rate) * num_cuts
+
 
 def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
     block_w, block_h, block_l = block_dimensions
-    
-    if cut_type == "height":
-        area_mm = block_w * block_l
-    elif cut_type == "length":
+
+    # Treat "dia" exactly like "length"
+    if cut_type in ['length', 'dia']:
         area_mm = block_w * block_h
+    elif cut_type == "height":
+        area_mm = block_w * block_l
     elif cut_type == "width":
         area_mm = block_h * block_l
-    elif cut_type == "dia":
-        area_mm = block_w * block_h
     else:
         raise ValueError("Invalid cut type.")
-    
+
     area_in2 = area_mm / (25 ** 2)
     return round(area_in2 * num_cuts, 2)
+
 
 @app.route('/')
 def index():
@@ -79,9 +79,11 @@ def calculate():
     final_dim = int(data['final_dimension'])
     num_cuts = int(data.get('num_cuts', 1))
 
+    # Default block dimensions
     block_dimensions = (width, height, length)
 
     if cut_type == 'length':
+        # For length cut, final_dim changes the length
         length = final_dim
         selected_dimensions = (width, height)
     elif cut_type == 'height':
@@ -91,20 +93,21 @@ def calculate():
         width = final_dim
         selected_dimensions = (height, length)
     elif cut_type == 'dia':
+        # Keep original length, but width & height = diameter
         diameter = final_dim
-        width = diameter
-        height = diameter
-        block_dimensions = (width, height, length)
+        block_dimensions = (diameter, diameter, length)
         selected_dimensions = (diameter, diameter)
     else:
         raise ValueError("Invalid cut type.")
 
-    block_dimensions = (width, height, length)
+    # Update block_dimensions for length/height/width cuts
+    if cut_type != 'dia':
+        block_dimensions = (width, height, length)
 
     results = []
     for machine in machine_data:
         if cut_type == "dia" and machine['Machine Name'].startswith("V"):
-            continue
+            continue  # exclude vertical machines for dia
 
         capacity_1, capacity_2 = machine['Capacity']
         feed_rate = machine.get(f'Feed {steel_grade} (mm/min)', machine.get('Feed PMS (mm/min)', None))
@@ -124,6 +127,3 @@ def calculate():
         })
 
     return jsonify(results)
-
-if __name__ == '__main__':
-    app.run(debug=True)
