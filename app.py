@@ -96,7 +96,7 @@ def calculate():
         # Keep original length, but width & height = diameter
         diameter = final_dim
         block_dimensions = (diameter, diameter, length)
-        selected_dimensions = (diameter, diameter)
+        selected_dimensions = (diameter)
     else:
         raise ValueError("Invalid cut type.")
 
