@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+import math
 
 app = Flask(__name__)
 
@@ -48,17 +49,19 @@ def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name, 
 
 def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
     block_w, block_h, block_l = block_dimensions
-
-    # Treat "dia" exactly like "length"
-    if cut_type in ['length', 'dia']:
-        area_mm = block_w * block_h
-    elif cut_type == "height":
+    
+    if cut_type == "height":
         area_mm = block_w * block_l
+    elif cut_type == "length":
+        area_mm = block_w * block_h
     elif cut_type == "width":
         area_mm = block_h * block_l
+    elif cut_type == "dia":
+        diameter = block_w  # width = height = diameter
+        area_mm = math.pi * (diameter / 2) ** 2
     else:
         raise ValueError("Invalid cut type.")
-
+    
     area_in2 = area_mm / (25 ** 2)
     return round(area_in2 * num_cuts, 2)
 
