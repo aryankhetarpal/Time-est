@@ -41,7 +41,7 @@ def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name, 
     elif cut_type == 'width':
         cut_dim = max(block_h, block_l) if machine_name.startswith("V") else min(block_h, block_l)
     elif cut_type == 'dia':
-        cut_dim = block_w  # dia assumed as width
+        cut_dim = max(block_h, block_w) if machine_name.startswith("V") else min(block_h, block_w)  # dia assumed as width
     else:
         raise ValueError("Invalid cut type.")
     
