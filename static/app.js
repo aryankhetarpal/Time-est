@@ -1,3 +1,14 @@
+document.getElementById("height").addEventListener("input", function() {
+    const heightValue = this.value.trim().toLowerCase();
+    const cutTypeSelect = document.getElementById("cut_type");
+
+    if (heightValue === "dia") {
+        cutTypeSelect.value = "dia";
+        cutTypeSelect.disabled = true; // optional: prevent changing cut type manually
+    } else {
+        cutTypeSelect.disabled = false;
+    }
+});
 function calculateCuttingTime() {
     const height = document.getElementById("height").value;
     const width = document.getElementById("width").value;
