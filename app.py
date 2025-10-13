@@ -99,7 +99,7 @@ def calculate():
         selected_dimensions = (width, length)
     elif cut_type == 'width':
         width = final_dim
-        block_dimensions = (height, width, length)  # swap to match function expectation
+        block_dimensions = (width, height, length)
         selected_dimensions = (height, length)
     elif cut_type == 'dia':
         diameter = final_dim
