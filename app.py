@@ -35,17 +35,19 @@ machine_data = [
 def calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine_name, num_cuts):
     block_w, block_h, block_l = block_dimensions
 
-    # Treat "dia" exactly like "length"
-    if cut_type in ['length', 'dia']:
+    if cut_type == 'length':
         cut_dim = max(block_h, block_w) if machine_name.startswith("V") else min(block_h, block_w)
     elif cut_type == 'height':
         cut_dim = max(block_w, block_l) if machine_name.startswith("V") else min(block_w, block_l)
     elif cut_type == 'width':
         cut_dim = max(block_h, block_l) if machine_name.startswith("V") else min(block_h, block_l)
+    elif cut_type == 'dia':
+        cut_dim = block_w   # ✅ use width (the actual diameter)
     else:
         raise ValueError("Invalid cut type.")
 
     return (cut_dim / feed_rate) * num_cuts
+
 
 def calculate_sq_inches(block_dimensions, cut_type, num_cuts):
     block_w, block_h, block_l = block_dimensions
