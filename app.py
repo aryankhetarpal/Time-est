@@ -102,7 +102,7 @@ def calculate():
         block_dimensions = (width, height, length)
         selected_dimensions = (height, length)
     elif cut_type == 'dia':
-        diameter = final_dim
+        diameter = width
         block_dimensions = (diameter, diameter, length)
         selected_dimensions = (diameter, diameter)
     else:
