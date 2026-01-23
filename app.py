@@ -75,10 +75,11 @@ def index():
 def calculate():
     data = request.json
 
+    # Detect if height is "Dia" (case-insensitive)
     height_input = str(data['height']).strip()
     if height_input.lower() == 'dia':
         cut_type = 'dia'
-        height = None
+        height = None  # will set later
     else:
         height = int(height_input)
         cut_type = data['cut_type']
@@ -89,6 +90,7 @@ def calculate():
     final_dim = int(data['final_dimension'])
     num_cuts = int(data.get('num_cuts', 1))
 
+    # Set block dimensions based on cut type
     if cut_type == 'length':
         length = final_dim
         block_dimensions = (width, height, length)
@@ -110,29 +112,27 @@ def calculate():
 
     results = []
     for machine in machine_data:
-
         if cut_type == "dia" and machine['Machine Name'].startswith("V"):
-            continue
+            continue  # exclude vertical machines for dia
 
-        cap1, cap2 = machine['Capacity']
+        capacity_1, capacity_2 = machine['Capacity']
         feed_rate = machine.get(f'Feed {steel_grade} (mm/min)', machine.get('Feed PMS (mm/min)', None))
-
         if feed_rate is None:
             continue
 
-        can_cut = cap1 >= selected_dimensions[0] and cap2 >= selected_dimensions[1]
+        can_cut = capacity_1 >= selected_dimensions[0] and capacity_2 >= selected_dimensions[1]
 
-        sq_inches_single = calculate_sq_inches(block_dimensions, cut_type, 1)
-        sq_inches = sq_inches_single * num_cuts
-
-        time_minutes = sq_inches / feed_rate
+        time = calculate_cutting_time(feed_rate, block_dimensions, cut_type, machine['Machine Name'], num_cuts)
+        sq_inches = calculate_sq_inches(block_dimensions, cut_type, num_cuts)
 
         results.append({
             'machine_name': machine['Machine Name'],
-            'cutting_time': round(time_minutes, 2),
-            'sq_inches': round(sq_inches, 2),
+            'cutting_time': round(time, 2),
+            'sq_inches': sq_inches,
             'can_cut': can_cut
-})
-
+        })
 
     return jsonify(results)
+
+if __name__ == '__main__':
+    app.run(debug=True)
