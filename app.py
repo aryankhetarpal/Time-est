@@ -122,18 +122,17 @@ def calculate():
 
         can_cut = cap1 >= selected_dimensions[0] and cap2 >= selected_dimensions[1]
 
-        sq_inches = calculate_sq_inches(block_dimensions, cut_type, num_cuts)
+        sq_inches_single = calculate_sq_inches(block_dimensions, cut_type, 1)
+        sq_inches = sq_inches_single * num_cuts
 
-        # -----------------------
-        # NEW TIME FORMULA HERE
-        # -----------------------
         time_minutes = sq_inches / feed_rate
 
         results.append({
             'machine_name': machine['Machine Name'],
             'cutting_time': round(time_minutes, 2),
-            'sq_inches': sq_inches,
+            'sq_inches': round(sq_inches, 2),
             'can_cut': can_cut
-        })
+})
+
 
     return jsonify(results)
