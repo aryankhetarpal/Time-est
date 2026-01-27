@@ -1,22 +1,23 @@
 document.getElementById("height").addEventListener("input", function() {
     const heightValue = this.value.trim().toLowerCase();
-    const cutTypeSelect = document.getElementById("cut_type");
+    const cutTypeSelect = document.getElementById("cut-type");
 
     if (heightValue === "dia") {
         cutTypeSelect.value = "dia";
-        cutTypeSelect.disabled = true; // optional: prevent changing cut type manually
+        cutTypeSelect.disabled = true; // prevent changing cut type manually
     } else {
         cutTypeSelect.disabled = false;
     }
 });
+
 function calculateCuttingTime() {
     const height = document.getElementById("height").value;
-    const width = document.getElementById("width").value;
-    const length = document.getElementById("length").value;
-    const steelGrade = document.getElementById("steel_grade").value;
-    const cutType = document.getElementById("cut_type").value;
-    const finalDimension = document.getElementById("final_dimension").value;
-    const numCuts = document.getElementById("num_cuts").value;
+    const width = Number(document.getElementById("width").value);
+    const length = Number(document.getElementById("length").value);
+    const steelGrade = document.getElementById("grade").value;
+    const cutType = document.getElementById("cut-type").value;
+    const finalDimension = Number(document.getElementById("final-dimension").value);
+    const numCuts = Number(document.getElementById("num-cuts").value);
 
     const requestData = {
         height: height,
@@ -38,7 +39,7 @@ function calculateCuttingTime() {
         let resultsDiv = document.getElementById("results");
         resultsDiv.innerHTML = "";
 
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
             resultsDiv.innerHTML = "<p>No suitable machines found.</p>";
             return;
         }
