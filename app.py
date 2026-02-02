@@ -35,6 +35,7 @@ machine_data = [
 # Benchmark feed in square inches/min
 grade_feed_in2 = {
     "PMS": 3.72,
+    "DS": 2.79,
     "2714": 2.79,
     "2316": 2.79,
     "Nitro B": 2.79
@@ -96,8 +97,13 @@ def calculate_cutting_time(feed_rate_mm, block_dimensions, cut_type, machine_nam
     time_in2 = (area_in2 / benchmark_feed) * num_cuts
 
     # Use the larger of the two for realism
-    time_min = max(time_mm, time_in2)
+    if steel_grade == "PMS":
+        time_min = time_mm
+    else:
+        time_min = max(time_mm, time_in2)
+
     return round(time_min, 2)
+    
 
 
 @app.route('/')
