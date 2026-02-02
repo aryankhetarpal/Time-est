@@ -151,7 +151,11 @@ def calculate():
         if cut_type == "dia" and machine['Machine Name'].startswith("V"):
             continue  # skip vertical machines for dia cuts
         capacity_1, capacity_2 = machine['Capacity']
-        feed_rate = machine.get(f'Feed {steel_grade} (mm/min)', machine.get('Feed PMS (mm/min)', None))
+        if steel_grade == "PMS":
+            feed_rate = machine['Feed PMS (mm/min)']
+        else:
+            feed_rate = machine['Feed 2714/2316/Nitro B (mm/min)']
+
         if feed_rate is None:
             continue
         can_cut = capacity_1 >= selected_dimensions[0] and capacity_2 >= selected_dimensions[1]
