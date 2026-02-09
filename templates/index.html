@@ -11,110 +11,161 @@
     th { background: #f2f2f2; }
     tr.unfit { background-color: #fdd; }
     tr.bitl { background-color: #ffd; }
+    tr.error-row { background-color: #ffe0e0; font-weight: bold; color: red; }
   </style>
 </head>
 <body>
-  <h2>Cutting Time Calculator</h2>
 
-  <label>Height (mm or Dia): <input type="text" id="height" placeholder="Enter mm or 'Dia'" required></label>
-  <label>Width (mm): <input type="number" id="width" required></label>
-  <label>Length (mm): <input type="number" id="length" required></label><br>
+<h2>Cutting Time Calculator</h2>
 
-  <label>Steel Grade:
-    <select id="grade">
-      <option value="PMS">PMS</option>
-      <option value="DS">DS</option>
-      <option value="2714">2714</option>
-      <option value="2316">2316</option>
-      <option value="Nitro B">Nitro B</option>
-    </select>
-  </label>
+<label>Height (mm or Dia):
+  <input type="text" id="height" placeholder="Enter mm or 'Dia'" required>
+</label>
 
-  <label>Cut Type:
-    <select id="cut-type" onchange="toggleHeightInput()">
-      <option value="length">Length</option>
-      <option value="height">Height</option>
-      <option value="width">Width</option>
-      <option value="dia">Dia</option>
-    </select>
-  </label>
+<label>Width (mm):
+  <input type="number" id="width" required>
+</label>
 
-  <label>Final Dimension (mm): <input type="number" id="final-dimension" required></label>
-  <label>Number of Cuts: <input type="number" id="num-cuts" value="1"></label>
+<label>Length (mm):
+  <input type="number" id="length" required>
+</label>
+<br>
 
-  <br><br>
-  <button onclick="calculateCuttingTime()">Calculate</button>
+<label>Steel Grade:
+  <select id="grade">
+    <option value="PMS">PMS</option>
+    <option value="DS">DS</option>
+    <option value="2714">2714</option>
+    <option value="2316">2316</option>
+    <option value="Nitro B">Nitro B</option>
+  </select>
+</label>
 
-  <table id="results-table" style="display:none;">
-    <thead>
-      <tr>
-        <th>Machine Name</th>
-        <th>Cutting Time (min)</th>
-        <th>Square Inches (in²)</th>
-        <th>Can Cut?</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+<label>Cut Type:
+  <select id="cut-type" onchange="toggleHeightInput()">
+    <option value="length">Length</option>
+    <option value="height">Height</option>
+    <option value="width">Width</option>
+    <option value="dia">Dia</option>
+  </select>
+</label>
 
-  <script>
-    function toggleHeightInput() {
-      const cutType = document.getElementById("cut-type").value;
-      const heightInput = document.getElementById("height");
-      const finalDimInput = document.getElementById("final-dimension");
+<label>Final Dimension (mm):
+  <input type="number" id="final-dimension" required>
+</label>
 
-      if (cutType === "dia") {
-        heightInput.value = "Dia";
-        heightInput.disabled = true;
-        finalDimInput.disabled = true;
-      } else {
-        heightInput.disabled = false;
-        finalDimInput.disabled = false;
-      }
+<label>Number of Cuts:
+  <input type="number" id="num-cuts" value="1">
+</label>
+
+<br><br>
+
+<button onclick="calculateCuttingTime()">Calculate</button>
+
+<table id="results-table" style="display:none;">
+  <thead>
+    <tr>
+      <th>Machine Name</th>
+      <th>Cutting Time (min)</th>
+      <th>Square Inches (in²)</th>
+      <th>Can Cut?</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<script>
+
+function toggleHeightInput() {
+  const cutType = document.getElementById("cut-type").value;
+  const heightInput = document.getElementById("height");
+  const finalDimInput = document.getElementById("final-dimension");
+
+  if (cutType === "dia") {
+    heightInput.value = "Dia";
+    heightInput.readOnly = true;
+
+    finalDimInput.value = 0;
+    finalDimInput.readOnly = true;
+  } else {
+    heightInput.readOnly = false;
+    finalDimInput.readOnly = false;
+  }
+}
+
+async function calculateCuttingTime() {
+
+  const payload = {
+    height: document.getElementById("height").value,
+    width: document.getElementById("width").value,
+    length: document.getElementById("length").value,
+    steel_grade: document.getElementById("grade").value,
+    cut_type: document.getElementById("cut-type").value,
+    final_dimension: document.getElementById("final-dimension").value,
+    num_cuts: document.getElementById("num-cuts").value
+  };
+
+  const table = document.getElementById("results-table");
+  const tbody = table.querySelector("tbody");
+  tbody.innerHTML = "";
+  table.style.display = "table";
+
+  try {
+
+    const response = await fetch("/calculate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const results = await response.json();
+
+    // If backend error
+    if (!response.ok) {
+      const row = document.createElement("tr");
+      row.classList.add("error-row");
+      row.innerHTML = `
+        <td colspan="4">
+          ${results.error || "Invalid input. Please check dimensions."}
+        </td>
+      `;
+      tbody.appendChild(row);
+      return;
     }
 
-    async function calculateCuttingTime() {
-      const payload = {
-        height: document.getElementById("height").value,
-        width: document.getElementById("width").value,
-        length: document.getElementById("length").value,
-        steel_grade: document.getElementById("grade").value,
-        cut_type: document.getElementById("cut-type").value,
-        final_dimension: document.getElementById("final-dimension").value,
-        num_cuts: document.getElementById("num-cuts").value
-      };
+    // Normal machine results
+    results.forEach(machine => {
+      const row = document.createElement("tr");
 
-      const response = await fetch("/calculate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
+      if (!machine.can_cut) row.classList.add("unfit");
+      if (machine.machine_name === "BITL") row.classList.add("bitl");
 
-      const results = await response.json();
-      const table = document.getElementById("results-table");
-      const tbody = table.querySelector("tbody");
-      tbody.innerHTML = "";
+      row.innerHTML = `
+        <td>${machine.machine_name}</td>
+        <td>${machine.cutting_time.toFixed(2)}</td>
+        <td>${machine.sq_inches.toFixed(2)}</td>
+        <td>${machine.can_cut ? "✅ Yes" : "❌ No"}</td>
+      `;
 
-      results.forEach(machine => {
-        const row = document.createElement("tr");
-        if (!machine.can_cut) row.classList.add("unfit");
-        if (machine.machine_name === "BITL") row.classList.add("bitl");
+      tbody.appendChild(row);
+    });
 
-        const sqInches = machine.sq_inches !== null ? machine.sq_inches.toFixed(2) : "-";
+  } catch (error) {
 
-        row.innerHTML = `
-          <td>${machine.machine_name}</td>
-          <td>${machine.cutting_time.toFixed(2)}</td>
-          <td>${sqInches}</td>
-          <td>${machine.can_cut ? "✅ Yes" : "❌ No"}</td>
-        `;
-        tbody.appendChild(row);
-      });
+    const row = document.createElement("tr");
+    row.classList.add("error-row");
+    row.innerHTML = `
+      <td colspan="4">
+        Server error. Check backend connection.
+      </td>
+    `;
+    tbody.appendChild(row);
+  }
+}
 
-      table.style.display = "table";
-    }
+toggleHeightInput();
 
-    toggleHeightInput(); // initialize on page load
-  </script>
+</script>
+
 </body>
 </html>
