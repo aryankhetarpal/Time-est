@@ -3,221 +3,226 @@ import math
 
 app = Flask(__name__)
 
+# =====================================================
+# MACHINE DATA — ALL 26 MACHINES
+# =====================================================
+
 machine_data = [
-    {'ID': 1, 'Machine Name': 'ITL1', 'Capacity': (1500, 610), 'Feed PMS (mm/min)': 2, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
-    {'ID': 2, 'Machine Name': 'ITL2', 'Capacity': (1550, 610), 'Feed PMS (mm/min)': 2, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
-    {'ID': 3, 'Machine Name': 'K1', 'Capacity': (1000, 750), 'Feed PMS (mm/min)': 2.5, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 4, 'Machine Name': 'K2', 'Capacity': (400, 350), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 2.8},
-    {'ID': 5, 'Machine Name': 'K3', 'Capacity': (460, 350), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 2.8},
-    {'ID': 6, 'Machine Name': 'K4', 'Capacity': (660, 660), 'Feed PMS (mm/min)': 2.8, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 7, 'Machine Name': 'K5', 'Capacity': (780, 800), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
-    {'ID': 8, 'Machine Name': 'K6', 'Capacity': (430, 400), 'Feed PMS (mm/min)': 2, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 9, 'Machine Name': 'K7', 'Capacity': (485, 400), 'Feed PMS (mm/min)': 2, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 10, 'Machine Name': 'K8', 'Capacity': (620, 500), 'Feed PMS (mm/min)': 2.5, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 11, 'Machine Name': 'K9', 'Capacity': (1300, 1050), 'Feed PMS (mm/min)': 2, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
-    {'ID': 12, 'Machine Name': 'K10', 'Capacity': (640, 640), 'Feed PMS (mm/min)': 2.2, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
-    {'ID': 13, 'Machine Name': 'J1', 'Capacity': (800, 800), 'Feed PMS (mm/min)': 2.5, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 14, 'Machine Name': 'J2', 'Capacity': (500, 500), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 15, 'Machine Name': 'V3', 'Capacity': (800, 1500), 'Feed PMS (mm/min)': 2.2, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 16, 'Machine Name': 'V5', 'Capacity': (1500, 1500), 'Feed PMS (mm/min)': 2.8, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 17, 'Machine Name': 'V6', 'Capacity': (1200, 3500), 'Feed PMS (mm/min)': 2.8, 'Feed 2714/2316/Nitro B (mm/min)': 2},
-    {'ID': 18, 'Machine Name': 'V7', 'Capacity': (2000, 3500), 'Feed PMS (mm/min)': 2, 'Feed 2714/2316/Nitro B (mm/min)': 1},
-    {'ID': 19, 'Machine Name': 'V8', 'Capacity': (2000, 3500), 'Feed PMS (mm/min)': 2, 'Feed 2714/2316/Nitro B (mm/min)': 1},
-    {'ID': 20, 'Machine Name': 'BITL', 'Capacity': (1500, 1800), 'Feed PMS (mm/min)': 0.9, 'Feed 2714/2316/Nitro B (mm/min)': 0.7},
-    {'ID': 21, 'Machine Name': 'B1', 'Capacity': (1500, 1800), 'Feed PMS (mm/min)': 2, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
-    {'ID': 22, 'Machine Name': 'R', 'Capacity': (600, 500), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
-    {'ID': 23, 'Machine Name': 'ITM2', 'Capacity': (490, 500), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 2.8},
-    {'ID': 24, 'Machine Name': 'ITM3', 'Capacity': (1060, 1060), 'Feed PMS (mm/min)': 2.8, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
-    {'ID': 25, 'Machine Name': 'Friggi', 'Capacity': (900, 900), 'Feed PMS (mm/min)': 2.5, 'Feed 2714/2316/Nitro B (mm/min)': 1.5},
-    {'ID': 26, 'Machine Name': 'B2', 'Capacity': (800, 800), 'Feed PMS (mm/min)': 3, 'Feed 2714/2316/Nitro B (mm/min)': 1.5}
+
+    # ================= HORIZONTAL MACHINES =================
+    {'ID': 1, 'Machine Name': 'ITL1', 'Type': 'Horizontal',
+     'Capacity': (1500, 610), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1.5},
+
+    {'ID': 2, 'Machine Name': 'ITL2', 'Type': 'Horizontal',
+     'Capacity': (1550, 610), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1.5},
+
+    {'ID': 3, 'Machine Name': 'K1', 'Type': 'Horizontal',
+     'Capacity': (1000, 750), 'Feed PMS (mm/min)': 2.5, 'Feed DS (mm/min)': 2},
+
+    {'ID': 4, 'Machine Name': 'K2', 'Type': 'Horizontal',
+     'Capacity': (400, 350), 'Feed PMS (mm/min)': 3, 'Feed DS (mm/min)': 2.8},
+
+    {'ID': 5, 'Machine Name': 'K3', 'Type': 'Horizontal',
+     'Capacity': (460, 350), 'Feed PMS (mm/min)': 3, 'Feed DS (mm/min)': 2.8},
+
+    {'ID': 6, 'Machine Name': 'K4', 'Type': 'Horizontal',
+     'Capacity': (660, 660), 'Feed PMS (mm/min)': 2.8, 'Feed DS (mm/min)': 2},
+
+    {'ID': 7, 'Machine Name': 'K5', 'Type': 'Horizontal',
+     'Capacity': (780, 800), 'Feed PMS (mm/min)': 3, 'Feed DS (mm/min)': 1.5},
+
+    {'ID': 8, 'Machine Name': 'K6', 'Type': 'Horizontal',
+     'Capacity': (430, 400), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 2},
+
+    {'ID': 9, 'Machine Name': 'K7', 'Type': 'Horizontal',
+     'Capacity': (485, 400), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 2},
+
+    {'ID': 10, 'Machine Name': 'K8', 'Type': 'Horizontal',
+     'Capacity': (620, 500), 'Feed PMS (mm/min)': 2.5, 'Feed DS (mm/min)': 2},
+
+    {'ID': 11, 'Machine Name': 'K9', 'Type': 'Horizontal',
+     'Capacity': (1300, 1050), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1.5},
+
+    {'ID': 12, 'Machine Name': 'K10', 'Type': 'Horizontal',
+     'Capacity': (640, 640), 'Feed PMS (mm/min)': 2.2, 'Feed DS (mm/min)': 1.5},
+
+    {'ID': 13, 'Machine Name': 'J1', 'Type': 'Horizontal',
+     'Capacity': (800, 800), 'Feed PMS (mm/min)': 2.5, 'Feed DS (mm/min)': 2},
+
+    {'ID': 14, 'Machine Name': 'J2', 'Type': 'Horizontal',
+     'Capacity': (500, 500), 'Feed PMS (mm/min)': 3, 'Feed DS (mm/min)': 2},
+
+    {'ID': 15, 'Machine Name': 'BITL', 'Type': 'Horizontal',
+     'Capacity': (1500, 1800), 'Feed PMS (mm/min)': 0.9, 'Feed DS (mm/min)': 0.7},
+
+    {'ID': 16, 'Machine Name': 'B1', 'Type': 'Horizontal',
+     'Capacity': (1500, 1800), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1.5},
+
+    {'ID': 17, 'Machine Name': 'R', 'Type': 'Horizontal',
+     'Capacity': (600, 500), 'Feed PMS (mm/min)': 3, 'Feed DS (mm/min)': 1.5},
+
+    {'ID': 18, 'Machine Name': 'ITM2', 'Type': 'Horizontal',
+     'Capacity': (490, 500), 'Feed PMS (mm/min)': 3, 'Feed DS (mm/min)': 2.8},
+
+    {'ID': 19, 'Machine Name': 'ITM3', 'Type': 'Horizontal',
+     'Capacity': (1060, 1060), 'Feed PMS (mm/min)': 2.8, 'Feed DS (mm/min)': 1.5},
+
+    {'ID': 20, 'Machine Name': 'Friggi', 'Type': 'Horizontal',
+     'Capacity': (900, 900), 'Feed PMS (mm/min)': 2.5, 'Feed DS (mm/min)': 1.5},
+
+    {'ID': 21, 'Machine Name': 'B2', 'Type': 'Horizontal',
+     'Capacity': (800, 800), 'Feed PMS (mm/min)': 3, 'Feed DS (mm/min)': 1.5},
+
+    # ================= VERTICAL MACHINES =================
+    {'ID': 22, 'Machine Name': 'V3', 'Type': 'Vertical',
+     'Capacity': (800, 1500), 'Feed PMS (mm/min)': 2.2, 'Feed DS (mm/min)': 2},
+
+    {'ID': 23, 'Machine Name': 'V5', 'Type': 'Vertical',
+     'Capacity': (1500, 1500), 'Feed PMS (mm/min)': 2.8, 'Feed DS (mm/min)': 2},
+
+    {'ID': 24, 'Machine Name': 'V6', 'Type': 'Vertical',
+     'Capacity': (1200, 3500), 'Feed PMS (mm/min)': 2.8, 'Feed DS (mm/min)': 2},
+
+    {'ID': 25, 'Machine Name': 'V7', 'Type': 'Vertical',
+     'Capacity': (2000, 3500), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1},
+
+    {'ID': 26, 'Machine Name': 'V8', 'Type': 'Vertical',
+     'Capacity': (2000, 3500), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1},
 ]
 
-# Benchmark feed in square inches/min
+# =====================================================
+# STEEL GRADE BENCHMARKS (in²/min baseline)
+# =====================================================
+
 grade_feed_in2 = {
-    "PMS": 3.72,
-    "DS": 2.79,
-    "2714": 2.79,
-    "2316": 2.79,
-    "Nitro B": 2.79
+    "2311": 3.0, "2738": 3.0, "2738 HH": 2.9,
+    "2738 EFF": 3.0, "TSHH": 2.9, "TSHG": 2.9,
+    "BMS Extra": 2.6, "2711": 2.6, "TDHHH": 2.5,
+    "2714": 2.5, "HIPERDIE": 2.2, "9966": 2.2,
+    "Nitro-BHT": 2.6,
+    "2316": 3.1, "2085": 3.0,
+    "Nitro-BA": 3.8, "2083": 3.8,
+    "Conqueror": 4.0, "HWS Supreme": 4.0,
+    "Ex-Stahl": 4.0, "HWR MAX": 4.0,
+    "2367": 4.0, "2344": 4.0
 }
-INCH2_PER_MM2 = 1 / 645.16  # mm² -> in²
 
-def calculate_sq_inches(original_dimensions, cut_type, num_cuts=1):
-    w, h, l = original_dimensions
+hard_feed_grades = {
+    "2714", "2316", "HIPERDIE",
+    "9966", "Nitro-BHT"
+}
 
+INCH2_PER_MM2 = 1 / 645.16
+
+# =====================================================
+# CUTTING TIME LOGIC
+# =====================================================
+
+def calculate_cutting_time(feed_rate_mm, dimensions, cut_type,
+                           steel_grade, num_cuts, machine_type):
+
+    w, h, l = dimensions
+
+    # -------- Determine Section Thickness & Area ----------
     if cut_type == "length":
+        thickness = min(w, h)
         area_mm = w * h
+
     elif cut_type == "width":
-        area_mm = h * l
+        thickness = min(w, h)
+        area_mm = w * h
+
     elif cut_type == "height":
+        thickness = min(w, l)
         area_mm = w * l
+
     elif cut_type == "dia":
-        diameter = w
-        area_mm = math.pi * (diameter / 2) ** 2
+        thickness = w
+        area_mm = math.pi * (w / 2) ** 2
+
     else:
         raise ValueError("Invalid cut type")
 
-    area_in2 = area_mm / (25.4 ** 2)
-    return round(area_in2 * num_cuts, 2)
+    # -------- Thickness based time ----------
+    time_mm = (thickness / feed_rate_mm) * num_cuts
 
-def calculate_cutting_time(feed_rate_mm, block_dimensions, cut_type, machine_name, steel_grade, num_cuts=1):
-    block_w, block_h, block_l = block_dimensions
-
-    # For V machines, use larger of the cross-sectional dimensions
-    if machine_name.startswith("V"):
-        if cut_type == 'length':
-            cut_thickness = max(block_h, block_w)
-            area_mm = block_h * block_w
-        elif cut_type == 'width':
-            cut_thickness = max(block_h, block_l)
-            area_mm = block_h * block_l
-        elif cut_type == 'height':
-            cut_thickness = max(block_w, block_l)
-            area_mm = block_w * block_l
-    else:  # For non-V machines, use smaller dimension
-        if cut_type == 'length':
-            cut_thickness = min(block_h, block_w)
-            area_mm = block_h * block_w
-        elif cut_type == 'width':
-            cut_thickness = min(block_h, block_l)
-            area_mm = block_h * block_l
-        elif cut_type == 'height':
-            cut_thickness = min(block_w, block_l)
-            area_mm = block_w * block_l
-
-    # For dia cuts
-    if cut_type == 'dia':
-        cut_thickness = block_w
-        area_mm = math.pi * (cut_thickness / 2) ** 2
-
-    # Time based on mm/min feed
-    time_mm = (cut_thickness / feed_rate_mm) * num_cuts
-
-    # Time based on benchmark sq.in/min
+    # -------- Area based time ----------
     area_in2 = area_mm * INCH2_PER_MM2
-    benchmark_feed = grade_feed_in2[steel_grade]
-    time_in2 = (area_in2 / benchmark_feed) * num_cuts
+    benchmark = grade_feed_in2.get(steel_grade)
 
-    # Use the larger of the two for realism
-    if steel_grade == "PMS":
-        time_min = time_mm
+    if benchmark is None:
+        raise ValueError(f"Steel grade '{steel_grade}' not defined.")
+
+    time_area = (area_in2 / benchmark) * num_cuts
+
+    # -------- Horizontal vs Vertical ----------
+    if machine_type == "Horizontal":
+        final_time = max(time_mm, time_area)
     else:
-        time_min = max(time_mm, time_in2)
+        vertical_factor = 1.15
+        final_time = time_area * vertical_factor
 
-    return round(time_min, 2)
-    
+    return round(final_time, 2), round(area_in2 * num_cuts, 2)
 
+
+# =====================================================
+# ROUTES
+# =====================================================
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
+
 
 @app.route('/calculate', methods=['POST'])
 def calculate():
-    data = request.json
+    try:
+        data = request.json
 
-    height_input = str(data['height']).strip()
-    cut_type = data['cut_type']
-    steel_grade = data['steel_grade']
-    final_dim = int(data['final_dimension'])
-    num_cuts = int(data.get('num_cuts', 1))
+        width = float(data['width'])
+        height = float(data['height'])
+        length = float(data['length'])
+        cut_type = data['cut_type']
+        steel_grade = data['steel_grade']
+        num_cuts = int(data.get('num_cuts', 1))
 
-    # -----------------------------
-    # 1️⃣ Store ORIGINAL dimensions
-    # -----------------------------
-    if height_input.lower() == 'dia':
-        cut_type = 'dia'
-        original_height = None
-        original_width = int(data['width'])   # diameter
-        original_length = int(data['length'])
-    else:
-        original_height = int(height_input)
-        original_width = int(data['width'])
-        original_length = int(data['length'])
+        dimensions = (width, height, length)
+        results = []
 
-    original_dimensions = (
-        original_width,
-        original_height,
-        original_length
-    )
+        for machine in machine_data:
 
-    # -----------------------------
-    # 2️⃣ Calculate cut amount
-    # -----------------------------
-    if cut_type == 'length':
-        cut_amount = original_length - final_dim
-        selected_dimensions = (original_width, original_height)
+            feed_rate = (
+                machine['Feed DS (mm/min)']
+                if steel_grade in hard_feed_grades
+                else machine['Feed PMS (mm/min)']
+            )
 
-    elif cut_type == 'width':
-        cut_amount = original_width - final_dim
-        selected_dimensions = (original_height, original_length)
+            capacity_w, capacity_h = machine['Capacity']
+            can_cut = capacity_w >= width and capacity_h >= height
 
-    elif cut_type == 'height':
-        cut_amount = original_height - final_dim
-        selected_dimensions = (original_width, original_length)
+            cutting_time, square_inches = calculate_cutting_time(
+                feed_rate,
+                dimensions,
+                cut_type,
+                steel_grade,
+                num_cuts,
+                machine['Type']
+            )
 
-    elif cut_type == 'dia':
-        cut_amount = original_length - final_dim
-        selected_dimensions = (original_width, original_width)
+            results.append({
+                "machine_name": machine['Machine Name'],
+                "machine_type": machine['Type'],
+                "cutting_time": cutting_time,
+                "square_inches": square_inches,
+                "can_cut": can_cut
+            })
 
-    else:
-        return jsonify({"error": "Invalid cut type"}), 400
+        results.sort(key=lambda x: x["cutting_time"])
 
-    # Safety check
-    if cut_amount <= 0:
-        return jsonify({"error": "Final dimension must be smaller than original."}), 400
+        return jsonify(results)
 
-    # -----------------------------
-    # 3️⃣ Calculate square inches
-    #    (Always use ORIGINAL stock)
-    # -----------------------------
-    sq_inches = calculate_sq_inches(
-        original_dimensions,
-        cut_type,
-        num_cuts
-    )
-
-    results = []
-
-    for machine in machine_data:
-
-        if cut_type == "dia" and machine['Machine Name'].startswith("V"):
-            continue  # Skip vertical machines for dia
-
-        capacity_1, capacity_2 = machine['Capacity']
-
-        if steel_grade == "PMS":
-            feed_rate = machine['Feed PMS (mm/min)']
-        else:
-            feed_rate = machine['Feed 2714/2316/Nitro B (mm/min)']
-
-        if feed_rate is None:
-            continue
-
-        # Capacity check (based on cross-section)
-        can_cut = (
-            capacity_1 >= selected_dimensions[0] and
-            capacity_2 >= selected_dimensions[1]
-        )
-
-        # Pass cut_amount instead of modified dimensions
-        time = calculate_cutting_time(
-        feed_rate,
-        original_dimensions,
-        cut_type,
-        machine['Machine Name'],
-        steel_grade,
-        num_cuts
-        )
-
-        results.append({
-            'machine_name': machine['Machine Name'],
-            'cutting_time': time,
-            'sq_inches': sq_inches,
-            'can_cut': can_cut
-        })
-
-    return jsonify(results)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 
 if __name__ == '__main__':
