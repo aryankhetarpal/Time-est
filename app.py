@@ -88,6 +88,9 @@ machine_data = [
 
     {'ID': 26, 'Machine Name': 'V8', 'Type': 'Vertical',
      'Capacity': (2000, 3500), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1},
+    
+    {'ID': 27, 'Machine Name': 'K11', 'Type': 'Vertical',
+     'Capacity': (800, 2600), 'Feed PMS (mm/min)': 6, 'Feed DS (mm/min)': 4},
 ]
 
 # =====================================================
