@@ -4,7 +4,7 @@ import math
 app = Flask(__name__)
 
 # =====================================================
-# MACHINE DATA — ALL 26 MACHINES
+# MACHINE DATA — ALL 27 MACHINES
 # =====================================================
 
 machine_data = [
@@ -121,49 +121,79 @@ INCH2_PER_MM2 = 1 / 645.16
 # CUTTING TIME LOGIC
 # =====================================================
 
+import math
+
 def calculate_cutting_time(feed_rate_mm, dimensions, cut_type,
                            steel_grade, num_cuts, machine_type):
 
     w, h, l = dimensions
 
-    # -------- Determine Section Thickness & Area ----------
-    if cut_type == "length":
-        thickness = min(w, h)
-        area_mm = w * h
+    # ---------------- Horizontal Machines ----------------
+    if machine_type == "Horizontal":
 
-    elif cut_type == "width":
-        thickness = min(w, h)
-        area_mm = w * h
+        if cut_type == "length":
+            thickness = min(w, h)
+            area_mm = w * h
 
-    elif cut_type == "height":
-        thickness = min(w, l)
-        area_mm = w * l
+        elif cut_type == "width":
+            thickness = min(w, h)
+            area_mm = w * h
 
-    elif cut_type == "dia":
-        thickness = w
-        area_mm = math.pi * (w / 2) ** 2
+        elif cut_type == "height":
+            thickness = min(w, l)
+            area_mm = w * l
 
+        elif cut_type == "dia":
+            thickness = w
+            area_mm = math.pi * (w / 2) ** 2
+
+        else:
+            raise ValueError("Invalid cut type")
+
+        time_mm = (thickness / feed_rate_mm) * num_cuts
+
+    # ---------------- Vertical Machines ----------------
     else:
-        raise ValueError("Invalid cut type")
 
-    # -------- Thickness based time ----------
-    time_mm = (thickness / feed_rate_mm) * num_cuts
+        if cut_type == "length":
+            # Feed through larger of width/height
+            thickness = max(w, h)
+            area_mm = w * h
 
-    # -------- Area based time ----------
+        elif cut_type == "width":
+            # Feed through length
+            thickness = l
+            area_mm = h * l
+
+        elif cut_type == "height":
+            # Feed through length
+            thickness = l
+            area_mm = w * l
+
+        elif cut_type == "dia":
+            thickness = w
+            area_mm = math.pi * (w / 2) ** 2
+
+        else:
+            raise ValueError("Invalid cut type")
+
+        time_mm = (thickness / feed_rate_mm) * num_cuts
+
+    # ---------------- Area Based Time ----------------
     area_in2 = area_mm * INCH2_PER_MM2
-    benchmark = grade_feed_in2.get(steel_grade)
 
+    benchmark = grade_feed_in2.get(steel_grade)
     if benchmark is None:
         raise ValueError(f"Steel grade '{steel_grade}' not defined.")
 
     time_area = (area_in2 / benchmark) * num_cuts
 
-    # -------- Horizontal vs Vertical ----------
+    # ---------------- Final Time ----------------
     if machine_type == "Horizontal":
         final_time = max(time_mm, time_area)
     else:
         vertical_factor = 1.15
-        final_time = time_area * vertical_factor
+        final_time = max(time_mm, time_area) * vertical_factor
 
     return round(final_time, 2), round(area_in2 * num_cuts, 2)
 
