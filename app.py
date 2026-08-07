@@ -53,7 +53,7 @@ machine_data = [
      'Capacity': (500, 500), 'Feed PMS (mm/min)': 3, 'Feed DS (mm/min)': 2},
 
     {'ID': 15, 'Machine Name': 'BITL', 'Type': 'Horizontal',
-     'Capacity': (1500, 1800), 'Feed PMS (mm/min)': 0.9, 'Feed DS (mm/min)': 0.7},
+     'Capacity': (2300, 1800), 'Feed PMS (mm/min)': 0.9, 'Feed DS (mm/min)': 0.7},
 
     {'ID': 16, 'Machine Name': 'B1', 'Type': 'Horizontal',
      'Capacity': (1500, 1800), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1.5},
@@ -90,6 +90,9 @@ machine_data = [
      'Capacity': (2000, 3500), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1},
     
     {'ID': 27, 'Machine Name': 'K11', 'Type': 'Vertical',
+     'Capacity': (800, 2600), 'Feed PMS (mm/min)': 6, 'Feed DS (mm/min)': 4},
+    
+    {'ID': 27, 'Machine Name': 'K12', 'Type': 'Vertical',
      'Capacity': (800, 2600), 'Feed PMS (mm/min)': 6, 'Feed DS (mm/min)': 4},
 ]
 
