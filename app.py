@@ -90,10 +90,10 @@ machine_data = [
      'Capacity': (2000, 3500), 'Feed PMS (mm/min)': 2, 'Feed DS (mm/min)': 1},
     
     {'ID': 27, 'Machine Name': 'K11', 'Type': 'Vertical',
-     'Capacity': (800, 2600), 'Feed PMS (mm/min)': 6, 'Feed DS (mm/min)': 4},
+     'Capacity': (1100, 6000), 'Feed PMS (mm/min)': 6, 'Feed DS (mm/min)': 4},
     
     {'ID': 27, 'Machine Name': 'K12', 'Type': 'Vertical',
-     'Capacity': (800, 2600), 'Feed PMS (mm/min)': 6, 'Feed DS (mm/min)': 4},
+     'Capacity': (1100, 6000), 'Feed PMS (mm/min)': 6, 'Feed DS (mm/min)': 4},
 ]
 
 # =====================================================
