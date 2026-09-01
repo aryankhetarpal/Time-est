@@ -4,7 +4,7 @@ import math
 app = Flask(__name__)
 
 # =====================================================
-# MACHINE DATA — ALL 27 MACHINES
+# MACHINE DATA — ALL 28 MACHINES
 # =====================================================
 
 machine_data = [
@@ -92,7 +92,7 @@ machine_data = [
     {'ID': 27, 'Machine Name': 'K11', 'Type': 'Vertical',
      'Capacity': (1100, 6000), 'Feed PMS (mm/min)': 6, 'Feed DS (mm/min)': 4},
     
-    {'ID': 27, 'Machine Name': 'K12', 'Type': 'Vertical',
+    {'ID': 28, 'Machine Name': 'K12', 'Type': 'Vertical',
      'Capacity': (1100, 6000), 'Feed PMS (mm/min)': 6, 'Feed DS (mm/min)': 4},
 ]
 
@@ -110,12 +110,12 @@ grade_feed_in2 = {
     "Nitro-BA": 3.8, "2083": 3.8,
     "Conqueror": 4.0, "HWS Supreme": 4.0,
     "Ex-Stahl": 4.0, "HWR MAX": 4.0,
-    "2367": 4.0, "2344": 4.0
+    "2367": 4.0, "2344": 4.0, "SMSS": 2.0
 }
 
 hard_feed_grades = {
     "2714", "2316", "HIPERDIE",
-    "9966", "Nitro-BHT"
+    "9966", "Nitro-BHT", "SMSS"
 }
 
 INCH2_PER_MM2 = 1 / 645.16
